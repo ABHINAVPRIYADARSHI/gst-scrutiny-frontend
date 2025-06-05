@@ -1,1 +1,0 @@
-# gst-scrutiny-frontend
