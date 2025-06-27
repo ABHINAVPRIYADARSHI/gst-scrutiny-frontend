@@ -61,14 +61,10 @@ const UploadedFiles = ({ gstn, returnType, uploadedFiles, setUploadedFiles }) =>
     }
   };
 
-  if (!gstn.trim()) {
-    return null;
-  }
-
   return (
-    <Box p={4} borderWidth="1px" borderRadius="lg" shadow="sm" bg="white">
+    <Box p={4} borderWidth="1px" borderRadius="lg" shadow="sm" bg="white" minW="300px">
       <Text fontWeight="bold" mb={3}>
-        Uploaded files for GSTIN: {gstn} | Return Type: {returnType}
+        Uploaded files for GSTIN: {gstn || "N/A"} | Return Type: {returnType || "N/A"}
       </Text>
   
       {uploadedFiles.length === 0 ? (
@@ -87,7 +83,7 @@ const UploadedFiles = ({ gstn, returnType, uploadedFiles, setUploadedFiles }) =>
                 _hover={{ bg: "gray.50" }}
               >
                 <HStack justify="space-between">
-                  <Text fontSize="sm" noOfLines={1}>
+                  <Text fontSize="sm" isTruncated maxW="80%" title={fileName}>
                     📄 {fileName}
                   </Text>
                   <IconButton
@@ -106,6 +102,7 @@ const UploadedFiles = ({ gstn, returnType, uploadedFiles, setUploadedFiles }) =>
       )}
     </Box>
   );
+  
 };  
 
 export default UploadedFiles;

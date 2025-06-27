@@ -112,7 +112,7 @@ const Reports = ({ gstn, status }) => {
   return (
     <Box p={4} borderWidth="1px" borderRadius="lg" bg="white" shadow="sm">
       <Text fontSize="lg" fontWeight="bold" mb={3}>Reports</Text>
-
+      
       <VStack align="start" spacing={4}>
         {gstn ? (
           <>
@@ -131,6 +131,7 @@ const Reports = ({ gstn, status }) => {
             ) : reportFiles.length > 0 ? (
               <Box>
                 <Text fontSize="sm" mt={4} mb={2} fontWeight="semibold">Generated Reports:</Text>
+                <Box maxHeight="200px" overflowY="auto" pr={2}>
                 <List spacing={2}>
                   {reportFiles.map((file, idx) => (
                     <ListItem key={idx}>
@@ -138,18 +139,19 @@ const Reports = ({ gstn, status }) => {
                         size="sm"
                         variant="link"
                         colorScheme="blue"
-                        onClick={() => handlePreview(file)}
+                        // onClick={() => handlePreview(file)}
                       >
                        📄 {file}
                       </Button>
                     </ListItem>
                   ))}
                 </List>
+                </Box>
                   <Text fontSize="xs" color="gray.500" mt={2}>
-                    These files are also available at:
+                    The reports are available at:
                     <br />
                     <Text as="span" fontFamily="mono" color="gray.600">
-                      /Project Root/reports/{gstn}
+                      /.exe directory/reports/{gstn}
                     </Text>
                   </Text>
 
