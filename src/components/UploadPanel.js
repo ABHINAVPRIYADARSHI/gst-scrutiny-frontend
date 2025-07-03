@@ -19,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogBody,
   AlertDialogFooter,
-  FormErrorMessage, FormControl
+  FormErrorMessage, FormControl, FormLabel, Switch
 } from "@chakra-ui/react";
 
 const RETURN_TYPES = ["GSTR-1", "GSTR-2A", "GSTR-3B", "GSTR-9", "EWB-IN", "EWB-OUT", "BO comparison summary"];
@@ -41,6 +41,7 @@ const UploadPanel = ({
       fileInputRef.current.value = ""; // Clear input visually
     }
   }, [returnType, setFiles]);
+const [includeOptionalReport, setIncludeOptionalReport] = useState(true);
 
   const toast = useToast();
   const fileInputRef = useRef();
@@ -167,9 +168,10 @@ const UploadPanel = ({
     setStatus("Generating reports...");
     const formData = new FormData();
     formData.append("gstn", gstn.trim());
+    formData.append("include_ASMT_10_report", includeOptionalReport ? "true" : "false");
 
     try {
-      const res = await fetch("http://localhost:8000/generate_master/", {
+      const res = await fetch("http://localhost:8000/generate_reports/", {
         method: "POST",
         body: formData,
       });
@@ -252,7 +254,7 @@ const UploadPanel = ({
               <WrapItem key={type}>
                 <Button
                   size="sm"
-                  colorScheme={returnType === type ? "blue" : "gray"}
+                  colorScheme={returnType === type ? "teal" : "gray"}
                   onClick={() => setReturnType(type)}
                 >
                   {type}
@@ -263,7 +265,7 @@ const UploadPanel = ({
         </Box>
 
         <Box w="100%">
-          <Text mb={1}>Upload Files</Text>
+          {/* <Text mb={1}>Upload Files</Text> */}
           <Button
             as="label"
             htmlFor="file-upload"
@@ -355,6 +357,12 @@ const UploadPanel = ({
             Generate Reports
           </Button>
         </HStack>
+        <FormControl display="flex" alignItems="center" mt={3}>
+          <Switch id="includeASMT10" isChecked={includeOptionalReport} onChange={(e) => setIncludeOptionalReport(e.target.checked)} colorScheme="teal" />
+          <FormLabel htmlFor="include-optional-report" mb="0" ml={2} fontSize="sm" color="gray.600">
+            Whether You want ASMT-10 report?
+          </FormLabel>
+        </FormControl>
       </VStack>
 
       {/* AlertDialog for open files */}
