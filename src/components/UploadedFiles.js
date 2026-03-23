@@ -1,12 +1,8 @@
 // components/UploadedFiles.js
 import React, { useEffect } from "react";
 import {
-  Box,
   Text,
-  VStack,
-  HStack,
   IconButton,
-  Divider,
   useToast,
 } from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
@@ -62,45 +58,40 @@ const UploadedFiles = ({ gstn, returnType, uploadedFiles, setUploadedFiles }) =>
   };
 
   return (
-    <Box p={4} borderWidth="1px" borderRadius="lg" shadow="sm" bg="white" minW="300px">
-      <Text fontWeight="bold" mb={3}>
-        Uploaded files for GSTIN: {gstn || "N/A"} | Return Type: {returnType || "N/A"}
-      </Text>
-  
-      {uploadedFiles.length === 0 ? (
-        <Text color="gray.500">No files uploaded yet.</Text>
-      ) : (
-        <Box maxHeight="300px" overflowY="auto">
-          <VStack align="start" spacing={3}>
+    <div className="card">
+      <div className="card-head">
+        <span className="card-title">Uploaded files</span>
+        <span className="card-sub">
+          GSTIN: {gstn || "—"} · {returnType || "—"}
+        </span>
+      </div>
+      <div className="card-body">
+        {uploadedFiles.length === 0 ? (
+          <Text fontSize="xs" color="var(--text-3)">
+            No files uploaded yet.
+          </Text>
+        ) : (
+          <div className="uploaded-files-scroll" aria-label="Uploaded files list">
             {uploadedFiles.map((fileName, index) => (
-              <Box
-                key={index}
-                w="100%"
-                border="1px solid"
-                borderColor="gray.200"
-                borderRadius="md"
-                p={3}
-                _hover={{ bg: "gray.50" }}
-              >
-                <HStack justify="space-between">
-                  <Text fontSize="sm" isTruncated maxW="80%" title={fileName}>
-                    📄 {fileName}
-                  </Text>
+              <div className="file-row" key={index}>
+                <span className="fname" title={fileName}>
+                  {fileName}
+                </span>
+                <div className="file-actions">
                   <IconButton
                     icon={<DeleteIcon />}
                     size="sm"
                     variant="ghost"
-                    colorScheme="red"
                     onClick={() => handleDelete(fileName)}
-                    aria-label="Delete file"
+                    aria-label={`Delete ${fileName}`}
                   />
-                </HStack>
-              </Box>
+                </div>
+              </div>
             ))}
-          </VStack>
-        </Box>
-      )}
-    </Box>
+          </div>
+        )}
+      </div>
+    </div>
   );
   
 };  

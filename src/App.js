@@ -1,10 +1,11 @@
 // App.js
 import React, { useState } from "react";
-import { ChakraProvider, Flex, Box } from "@chakra-ui/react";
-import Header from "./components/Header";
-import Footer from "./components/Footer";
+import Topbar from "./components/Topbar";
+import Rail from "./components/Rail";
+import IdentityStrip from "./components/IdentityStrip";
 import UploadPanel from "./components/UploadPanel";
 import UploadedFiles from "./components/UploadedFiles";
+import GenerateReportsAction from "./components/GenerateReportsAction";
 import Reports from "./components/Reports";
 
 function App() {
@@ -13,47 +14,85 @@ function App() {
   const [files, setFiles] = useState([]);
   const [status, setStatus] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [activeTab, setActiveTab] = useState("intake");
+  const [isDark, setIsDark] = useState(false);
+  const [includeOptionalReport, setIncludeOptionalReport] = useState(true);
 
 return (
-  <ChakraProvider>
-    <Flex direction="column" minHeight="100vh">
-      <Header />
+  <>
+    <a className="skip-link" href="#main">
+      Skip to main content
+    </a>
+    <div className={`shell ${isDark ? "dark" : ""}`}>
+      <Topbar gstn={gstn} status={status} />
+      <div className="body">
+        <Rail
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          isDark={isDark}
+          onToggleTheme={() => setIsDark((v) => !v)}
+        />
 
-      <Flex flex="1" p={4} gap={6} align="flex-start">
-        {/* Left Section (2/3): Upload + Uploaded Files side-by-side */}
-        <Flex flex="2" direction={{ base: "column", md: "row" }} gap={6}>
-          <Box w={{ base: "100%", md: "60%" }}>
-            <UploadPanel
-              gstn={gstn}
-              setGstn={setGstn}
-              returnType={returnType}
-              setReturnType={setReturnType}
-              files={files}
-              setFiles={setFiles}
-              setStatus={setStatus}
-              setUploadedFiles={setUploadedFiles}
-            />
-          </Box>
+        <div className="content">
+          <IdentityStrip gstn={gstn} setGstn={setGstn} returnType={returnType} setReturnType={setReturnType} />
 
-          <Box w={{ base: "100%", md: "40%" }}>
-            <UploadedFiles
-              gstn={gstn}
-              returnType={returnType}
-              uploadedFiles={uploadedFiles}
-              setUploadedFiles={setUploadedFiles}
-            />
-          </Box>
-        </Flex>
+          <main className="panels" id="main">
+            <section
+              className={`panel ${activeTab === "intake" ? "active" : ""}`}
+              id="panel-intake"
+              role="tabpanel"
+              aria-label="Intake"
+            >
+              <div className="intake-split">
+                <div className="intake-left">
+                  <UploadPanel
+                    gstn={gstn}
+                    returnType={returnType}
+                    files={files}
+                    setFiles={setFiles}
+                    setStatus={setStatus}
+                    setUploadedFiles={setUploadedFiles}
+                  />
+                </div>
 
-        {/* Right Section (1/3): Reports */}
-        <Box flex="1">
-          <Reports gstn={gstn} returnType={returnType} status={status} />
-        </Box>
-      </Flex>
+                <div className="intake-right">
+                  <div className="stat-solo" aria-label="Uploaded file count">
+                    <div className="stat-lbl">Files uploaded</div>
+                    <div className="stat-val">{uploadedFiles.length}</div>
+                    <div className="stat-sub">for {returnType}</div>
+                  </div>
 
-      <Footer />
-    </Flex>
-  </ChakraProvider>
+                  <UploadedFiles
+                    gstn={gstn}
+                    returnType={returnType}
+                    uploadedFiles={uploadedFiles}
+                    setUploadedFiles={setUploadedFiles}
+                  />
+
+                  <GenerateReportsAction
+                    gstn={gstn}
+                    includeOptionalReport={includeOptionalReport}
+                    setIncludeOptionalReport={setIncludeOptionalReport}
+                    setStatus={setStatus}
+                    onGoToReports={() => setActiveTab("reports")}
+                  />
+                </div>
+              </div>
+            </section>
+
+            <section
+              className={`panel ${activeTab === "reports" ? "active" : ""}`}
+              id="panel-reports"
+              role="tabpanel"
+              aria-label="Reports"
+            >
+              <Reports gstn={gstn} status={status} />
+            </section>
+          </main>
+        </div>
+      </div>
+    </div>
+  </>
 );
 }
 export default App;

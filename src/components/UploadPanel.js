@@ -1,39 +1,23 @@
-// components/UploadPanel.js
-import React, { useState, useRef, useEffect } from "react";
-import { DownloadIcon, DeleteIcon } from "@chakra-ui/icons";
+ // components/UploadPanel.js
+ import React, { useRef, useEffect } from "react";
+import { DeleteIcon } from "@chakra-ui/icons";
 import {
-  Box,
-  Button,
   IconButton,
   Input,
-  VStack,
-  HStack,
   Text,
   useToast,
-  Wrap,
-  WrapItem,
-  useDisclosure,
-  AlertDialog,
-  AlertDialogOverlay,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogBody,
-  AlertDialogFooter,
-  FormErrorMessage, FormControl, FormLabel, Switch
 } from "@chakra-ui/react";
-
-const RETURN_TYPES = ["GSTR-1", "GSTR-2A", "GSTR-3B", "GSTR-9", "EWB-IN", "EWB-OUT", "BO comparison summary"];
 
 const UploadPanel = ({
   gstn,
-  setGstn,
   returnType,
-  setReturnType,
   files,
   setFiles,
   setStatus,
   setUploadedFiles,
 }) => {
+  const toast = useToast();
+  const fileInputRef = useRef();
 
   useEffect(() => {
     setFiles([]);
@@ -41,25 +25,23 @@ const UploadPanel = ({
       fileInputRef.current.value = ""; // Clear input visually
     }
   }, [returnType, setFiles]);
-const [includeOptionalReport, setIncludeOptionalReport] = useState(true);
 
-  const toast = useToast();
-  const fileInputRef = useRef();
-  const [checkingOpenFiles, setCheckingOpenFiles] = useState(false);
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const cancelRef = useRef();
+  const isValidGSTIN = (gstn) => {
+    const regex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+    return regex.test(gstn);
+  };
 
-  const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-
-    const isPdf = (file) => file.type === "application/pdf";
+  const validateAndSetFiles = (selectedFiles) => {
+    // Dropped files may come with missing/incorrect MIME types; rely primarily on extension.
+    const isPdf = (file) =>
+      file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
     const isXlsx = (file) =>
-      file.name.endsWith(".xlsx") &&
-      file.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+      file.name.toLowerCase().endsWith(".xlsx") &&
+      (!file.type || file.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     const isXls = (file) => file.name.toLowerCase().endsWith(".xls");
 
-    const pdfOnlyTypes = ["GSTR-3B", "GSTR-9"];
-    const excelOnlyTypes = ["GSTR-1", "GSTR-2A", "BO comparison summary"];
+    const pdfOnlyTypes = ["GSTR-3B", "GSTR-9", "GSTR-9C"];
+    const excelOnlyTypes = ["GSTR-1", "GSTR-2A", "GSTR-2B", "BO comparison summary"];
     const xlsAllowedTypes = ["EWB-IN", "EWB-OUT"];
     const allPdfs = selectedFiles.every(isPdf);
     const allExcels = selectedFiles.every((file) =>
@@ -118,6 +100,18 @@ const [includeOptionalReport, setIncludeOptionalReport] = useState(true);
     setFiles(selectedFiles);
   };
 
+  const handleFileChange = (e) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    validateAndSetFiles(selectedFiles);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const droppedFiles = Array.from(e.dataTransfer?.files || []);
+    if (droppedFiles.length === 0) return;
+    validateAndSetFiles(droppedFiles);
+  };
+
   const handleUpload = async () => {
     if (!gstn.trim()) {
       toast({ title: "Enter GSTIN before uploading.", status: "warning", duration: 3000 });
@@ -144,7 +138,7 @@ const [includeOptionalReport, setIncludeOptionalReport] = useState(true);
         const errorText = await res.text();
         throw new Error(`Server error: ${res.status} ${errorText}`);
       }
-      const data = await res.json();
+      await res.json();
       setStatus("Upload complete. Ready to process.");
 
       const res2 = await fetch(
@@ -164,117 +158,37 @@ const [includeOptionalReport, setIncludeOptionalReport] = useState(true);
     }
   };
 
-  const runReportGeneration = async () => {
-    setStatus("Generating reports...");
-    const formData = new FormData();
-    formData.append("gstn", gstn.trim());
-    formData.append("include_ASMT_10_report", includeOptionalReport ? "true" : "false");
-
-    try {
-      const res = await fetch("http://localhost:8000/generate_reports/", {
-        method: "POST",
-        body: formData,
-      });
-      if (!res.ok) {
-        // Server responded with 404 or 500
-        const errorText = await res.text();
-        throw new Error(`Server error: ${res.status} ${errorText}`);
-      }
-      await res.json();
-      setStatus("Reports generated successfully.");
-      toast({ title: "Reports generated.", status: "success", duration: 3000 });
-    } catch (err) {
-      console.error("Generation error:", err);
-      setStatus("Error generating reports.");
-      toast({ title: "Failed to generate reports.", status: "error", duration: 3000 });
-    }
-  };
-
-  const handleGenerateReport = async () => {
-    if (!gstn.trim()) {
-      toast({ title: "Enter GSTIN to generate reports.", status: "warning", duration: 3000 });
-      return;
-    }
-
-    setCheckingOpenFiles(true);
-    try {
-      const res = await fetch(`http://localhost:8000/check-open-reports/?gstn=${gstn.trim()}`);
-      const data = await res.json();
-
-      if (data.open) {
-        onOpen(); // Show warning dialog
-      } else {
-        runReportGeneration(); // Safe to proceed
-      }
-    } catch (err) {
-      console.error("Check failed:", err);
-      toast({
-        title: "Failed to check for open files.",
-        description: "Proceeding with report generation.",
-        status: "warning",
-        duration: 3000,
-      });
-      runReportGeneration();
-    } finally {
-      setCheckingOpenFiles(false);
-    }
-  };
-
-  const isValidGSTIN = (gstn) => {
-    const regex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-    return regex.test(gstn);
-  };
-
   return (
-    <Box p={4} borderWidth="1px" borderRadius="lg" shadow="sm" bg="white">
-      <VStack align="start" spacing={4}>
-      <FormControl isInvalid={gstn && !isValidGSTIN(gstn)}>
-        <Box w="100%">
-          <Text fontWeight="bold" mb={1}>
-            GSTIN
-          </Text>
-          <Input
-            placeholder="Enter GSTIN"
-            value={gstn}
-            onChange={(e) => setGstn(e.target.value.toUpperCase())}
-            maxW="300px"
-          />
-            {gstn && !isValidGSTIN(gstn) && (
-              <FormErrorMessage>
-                Invalid GSTIN format. It must be 15 characters, like 22ABCDE1234F1Z5.
-              </FormErrorMessage>
-            )}
-        </Box>
-        </FormControl>
-      
-        <Box>
-          <Text mb={1}>Select GST Return Type</Text>
-          <Wrap spacing={2}>
-            {RETURN_TYPES.map((type) => (
-              <WrapItem key={type}>
-                <Button
-                  size="sm"
-                  colorScheme={returnType === type ? "teal" : "gray"}
-                  onClick={() => setReturnType(type)}
-                >
-                  {type}
-                </Button>
-              </WrapItem>
-            ))}
-          </Wrap>
-        </Box>
-
-        <Box w="100%">
-          {/* <Text mb={1}>Upload Files</Text> */}
-          <Button
-            as="label"
-            htmlFor="file-upload"
-            leftIcon={<DownloadIcon />}
-            colorScheme="blue"
-            variant="outline"
-            cursor="pointer"
+    <div className="upload-panel">
+      <div className="card upload-panel-card">
+        <div className="card-head">
+          <span className="card-title">Upload files</span>
+          <span className="card-sub">{getAcceptedFileTypes(returnType)}</span>
+        </div>
+        <div className="card-body upload-panel-body">
+          <div
+            className="upload-zone"
+            role="button"
+            tabIndex={0}
+            aria-label="Upload files. Drag and drop supported."
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={handleDrop}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                fileInputRef.current?.click();
+              }
+            }}
+            onClick={() => fileInputRef.current?.click()}
           >
-            Select Files
+            <span className="up-circle" aria-hidden="true">
+              <svg viewBox="0 0 18 18">
+                <path d="M9 3v9M6 6l3-3 3 3" />
+                <path d="M3 14h12" />
+              </svg>
+            </span>
+            <p>Drag &amp; drop files here</p>
+            <small>or click to browse — {getAcceptedFileTypes(returnType)}</small>
+
             <Input
               id="file-upload"
               type="file"
@@ -284,125 +198,99 @@ const [includeOptionalReport, setIncludeOptionalReport] = useState(true);
               onChange={handleFileChange}
               display="none"
             />
-          </Button>
+          </div>
 
-          <Text fontSize="sm" color="gray.500" mt={2}>
-            Accepted formats: {getAcceptedFileTypes(returnType).replaceAll(",", ", ")}
-          </Text>
-
-
-          {files.length > 0 ? (
-            <Box mt={3}>
-              <Text fontWeight="semibold" mb={1}>
-                Selected Files : {files.length}
-              </Text>
-
-              <Box
-                maxH="240px" // Adjust this based on item height (approx 7 items)
-                overflowY="auto"
-                pr={2} // For scrollbar space
-              >
-                <Wrap>
-                  {files.map((file, idx) => (
-                    <WrapItem key={idx}>
-                      <HStack
-                        px={3}
-                        py={1}
-                        bg="gray.100"
-                        borderRadius="md"
-                        fontSize="sm"
-                        spacing={2}
-                        maxW="240px"
-                      >
-                        <Text isTruncated title={file.name} maxW="180px">
-                          {file.name}
-                        </Text>
-                        <IconButton
-                          icon={<DeleteIcon />}
-                          size="xs"
-                          variant="ghost"
-                          colorScheme="red"
-                          aria-label="Remove file"
-                          onClick={() => {
-                            const updated = files.filter((_, i) => i !== idx);
-                            setFiles(updated);
-                            if (updated.length === 0 && fileInputRef.current) {
-                              fileInputRef.current.value = "";
-                            }
-                          }}
-                        />
-                      </HStack>
-                    </WrapItem>
-                  ))}
-                </Wrap>
-              </Box>
-            </Box>
-          ) : (
-              <Text fontSize="sm" color="gray.400" mt={2}>
+          <div className="selected-files" aria-label="Selected files list">
+            {files.length > 0 ? (
+              <>
+                <Text fontSize="xs" color="var(--text-3)" mb={2}>
+                  Selected: {files.length}
+                </Text>
+                {files.map((file, idx) => (
+                  <div className="file-row" key={idx}>
+                    <span className="fname" title={file.name}>
+                      {file.name}
+                    </span>
+                    <div className="file-actions">
+                      <IconButton
+                        icon={<DeleteIcon />}
+                        size="sm"
+                        variant="ghost"
+                        aria-label={`Remove ${file.name}`}
+                        onClick={() => {
+                          const updated = files.filter((_, i) => i !== idx);
+                          setFiles(updated);
+                          if (updated.length === 0 && fileInputRef.current) {
+                            fileInputRef.current.value = "";
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </>
+            ) : (
+              <Text fontSize="xs" color="var(--text-3)">
                 No files selected
               </Text>
             )}
+          </div>
+        </div>
+      </div>
 
-        </Box>
-        <HStack spacing={4}>
-          <Button colorScheme="teal" onClick={handleUpload} isDisabled={!isValidGSTIN(gstn)}>
-            Upload
-          </Button>
-          <Button
-            colorScheme="teal"
-            onClick={handleGenerateReport}
-            isLoading={checkingOpenFiles}
-            isDisabled={!isValidGSTIN(gstn)}
-          >
-            Generate Reports
-          </Button>
-        </HStack>
-        <FormControl display="flex" alignItems="center" mt={3}>
-          <Switch id="includeASMT10" isChecked={includeOptionalReport} onChange={(e) => setIncludeOptionalReport(e.target.checked)} colorScheme="teal" />
-          <FormLabel htmlFor="include-optional-report" mb="0" ml={2} fontSize="sm" color="gray.600">
-            Whether You want ASMT-10 report?
-          </FormLabel>
-        </FormControl>
-      </VStack>
+      <div className="action-btns-wrap upload-panel-actions">
+        {(() => {
+          const hasValidGstin = isValidGSTIN(gstn);
+          const uploadDisabled = !hasValidGstin || files.length === 0;
+          const title = !gstn.trim()
+            ? "Enter GSTIN to enable upload."
+            : !hasValidGstin
+              ? "Enter a valid GSTIN (15 chars) to enable upload."
+              : files.length === 0
+                ? "Select files first."
+                : "Upload files";
 
-      {/* AlertDialog for open files */}
-      <AlertDialog isOpen={isOpen} leastDestructiveRef={cancelRef} onClose={onClose}>
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Close Open Files
-            </AlertDialogHeader>
+          const hint = !gstn.trim()
+            ? "Enter GSTIN to enable upload."
+            : !hasValidGstin
+              ? "GSTIN format is invalid. Use 15 chars like 22ABCDE1234F1Z5."
+              : files.length === 0
+                ? `No valid ${getAcceptedFileTypes(returnType)} files selected for ${returnType}.`
+                : "";
+          const isGstinHint = !gstn.trim() || !hasValidGstin;
 
-            <AlertDialogBody>
-              Some report files appear to be open in Excel. Please close them before generating new
-              reports to avoid "Permission Denied" errors.
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onClose}>
-                Cancel
-              </Button>
-              <Button
-                colorScheme="purple"
-                onClick={() => {
-                  onClose();
-                  runReportGeneration(); // proceed anyway
-                }}
-                ml={3}
-              >
-                Proceed Anyway
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
-    </Box>
-
+          return (
+            <>
+              {hint ? (
+                <div
+                  className={`upload-hint${isGstinHint ? " upload-hint-danger" : ""}`}
+                  role="status"
+                  aria-live="polite"
+                >
+                  {hint}
+                </div>
+              ) : null}
+              <div className="action-btns">
+                <button
+                  className={uploadDisabled ? "btn-outline" : "btn-primary"}
+                  type="button"
+                  onClick={handleUpload}
+                  disabled={uploadDisabled}
+                  title={title}
+                >
+                  Upload files
+                </button>
+              </div>
+            </>
+          );
+        })()}
+      </div>
+    </div>
   );
 };
 
 const getAcceptedFileTypes = (returnType) => {
-  if (["GSTR-3B", "GSTR-9"].includes(returnType)) return ".pdf";
+  if (["GSTR-3B", "GSTR-9", "GSTR-9C"].includes(returnType)) return ".pdf";
   if (["EWB-IN", "EWB-OUT"].includes(returnType)) return ".xls";
   return ".xlsx";
 };

@@ -1,206 +1,182 @@
 // components/Reports.js
-import React, { useEffect, useState } from "react";
-import {
-  Box,
-  Text,
-  VStack,
-  Spinner,
-  HStack,
-  Button,
-  List,
-  ListItem,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalCloseButton,
-  useDisclosure,
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel
-} from "@chakra-ui/react";
+import React, { useCallback, useEffect, useState } from "react";
+import { Text, Spinner, Button, List, ListItem, useToast } from "@chakra-ui/react";
 import { CheckCircleIcon, WarningIcon, InfoIcon } from "@chakra-ui/icons";
-import { read, utils } from "xlsx";
-import { FixedSizeList as VirtualList } from "react-window";
 
 const Reports = ({ gstn, status }) => {
+  const toast = useToast();
   const [reportFiles, setReportFiles] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [workbookData, setWorkbookData] = useState({});
-  const [modalTitle, setModalTitle] = useState("");
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [openingReports, setOpeningReports] = useState(false);
+  const [error, setError] = useState("");
 
   const getStatusIcon = () => {
     if (!status) return <InfoIcon color="gray.400" />;
     if (status.includes("success")) return <CheckCircleIcon color="green.400" />;
     if (status.includes("error") || status.includes("fail")) return <WarningIcon color="red.400" />;
-    if (status.includes("Generating") || status.includes("Uploading"))
+    if (status.includes("Generating") || status.includes("Uploading")) {
       return <Spinner color="blue.400" size="sm" />;
+    }
     return <InfoIcon color="gray.500" />;
+  };
+
+  const fetchReports = useCallback(async () => {
+    if (!gstn) {
+      setReportFiles([]);
+      setError("");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch(`http://localhost:8000/reports/?gstn=${encodeURIComponent(gstn)}`);
+      if (!res.ok) {
+        throw new Error(`Server error: ${res.status}`);
+      }
+
+      const data = await res.json();
+      setReportFiles(data.reports || []);
+    } catch (err) {
+      console.error("Failed to fetch reports", err);
+      setReportFiles([]);
+      setError("Could not load reports. Check server connection and try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [gstn]);
+
+  const handleOpenReports = async () => {
+    if (!gstn.trim()) {
+      return;
+    }
+
+    setOpeningReports(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("gstn", gstn.trim());
+
+      const res = await fetch("http://localhost:8000/open-reports-folder/", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Server error: ${res.status} ${errorText}`);
+      }
+
+      toast({
+        title: "Reports folder opened.",
+        status: "success",
+        duration: 2500,
+        isClosable: true,
+      });
+    } catch (err) {
+      console.error("Failed to open reports folder", err);
+      toast({
+        title: "Could not open reports folder.",
+        description: "Check the backend endpoint and reports path, then try again.",
+        status: "error",
+        duration: 3500,
+        isClosable: true,
+      });
+    } finally {
+      setOpeningReports(false);
+    }
   };
 
   useEffect(() => {
     if (!gstn) {
       setReportFiles([]);
+      setError("");
       return;
     }
-  
-    const fetchReports = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`http://localhost:8000/reports/?gstn=${gstn}`);
-        const data = await res.json();
-        setReportFiles(data.reports || []);
-      } catch (err) {
-        console.error("Failed to fetch reports", err);
-        setReportFiles([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    // Fetch if GSTIN changes or status includes success
+
     if (!status || status.toLowerCase().includes("success")) {
       fetchReports();
     }
-  }, [gstn, status]);
-  
-
-  const handlePreview = async (filename) => {
-    try {
-      const res = await fetch(`http://localhost:8000/reports/download/?gstn=${gstn}&filename=${filename}`);
-      const blob = await res.blob();
-      const arrayBuffer = await blob.arrayBuffer();
-      const workbook = read(arrayBuffer, { type: "array" });
-      const data = {};
-      workbook.SheetNames.forEach((name) => {
-        const ws = workbook.Sheets[name];
-        data[name] = utils.sheet_to_json(ws, { header: 1 });
-      });
-      setWorkbookData(data);
-      setModalTitle(filename);
-      onOpen();
-    } catch (err) {
-      console.error("Error loading Excel file", err);
-    }
-  };
-
-  const renderRow = (rowData) => ({ index, style }) => {
-    const row = rowData[index] || [];
-    return (
-      <HStack
-        key={index}
-        spacing={4}
-        px={4}
-        py={2}
-        borderBottom="1px solid #eee"
-        style={style}
-        bg={index % 2 === 0 ? "gray.50" : "white"}
-      >
-        {row.map((cell, i) => (
-          <Text key={i} fontSize="sm" minW="120px" noOfLines={1}>
-            {cell}
-          </Text>
-        ))}
-      </HStack>
-    );
-  };
+  }, [fetchReports, gstn, status]);
 
   return (
-    <Box p={4} borderWidth="1px" borderRadius="lg" bg="white" shadow="sm">
-      <Text fontSize="lg" fontWeight="bold" mb={3}>Reports</Text>
-      
-      <VStack align="start" spacing={4}>
-        {gstn ? (
-          <>
-            <Box>
-              <Text fontSize="sm" fontWeight="semibold">
-                GSTIN: <Text as="span" color="blue.600">{gstn}</Text>
-              </Text>
-              <HStack mt={2} spacing={2}>
+    <div className="reports-wrap">
+      <div className="card">
+        <div className="card-head">
+          <div className="reports-head-meta">
+            <span className="card-title">Generated reports</span>
+            <span className="card-sub">{gstn ? `GSTIN: ${gstn}` : "GSTIN: -"}</span>
+          </div>
+          <button
+            className="btn-primary reports-open-btn"
+            type="button"
+            onClick={handleOpenReports}
+            disabled={openingReports || !gstn.trim()}
+            title={gstn.trim() ? "Open reports folder for this GSTIN" : "Enter GSTIN first"}
+          >
+            {openingReports ? "Opening..." : "Open Reports"}
+          </button>
+        </div>
+        <div className="card-body">
+          {gstn ? (
+            <>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                 {getStatusIcon()}
-                <Text fontSize="sm" color="gray.700">{status || "No report status yet."}</Text>
-              </HStack>
-            </Box>
+                <Text fontSize="xs" color="var(--text-3)">
+                  {status || "No report status yet."}
+                </Text>
+              </div>
 
-            {loading ? (
-              <Spinner size="sm" />
-            ) : reportFiles.length > 0 ? (
-              <Box>
-                <Text fontSize="sm" mt={4} mb={2} fontWeight="semibold">Generated Reports:</Text>
-                <Box maxHeight="200px" overflowY="auto" pr={2}>
-                <List spacing={2}>
-                  {reportFiles.map((file, idx) => (
-                    <ListItem key={idx}>
-                      <Button
-                        size="sm"
-                        variant="link"
-                        colorScheme="blue"
-                        // onClick={() => handlePreview(file)}
-                      >
-                       📄 {file}
-                      </Button>
-                    </ListItem>
-                  ))}
-                </List>
-                </Box>
-                  <Text fontSize="xs" color="gray.500" mt={2}>
-                    The reports are available at:
-                    <br />
-                    <Text as="span" fontFamily="mono" color="gray.600">
-                      /.exe directory/reports/{gstn}
+              {error ? (
+                <div className="file-row" style={{ alignItems: "flex-start" }}>
+                  <div style={{ flex: 1 }}>
+                    <Text fontSize="sm" fontWeight={600}>
+                      Could not load reports
                     </Text>
+                    <Text fontSize="xs" color="var(--text-3)">
+                      {error}
+                    </Text>
+                    <Button mt={2} size="sm" variant="outline" onClick={fetchReports}>
+                      Try again
+                    </Button>
+                  </div>
+                </div>
+              ) : loading && reportFiles.length === 0 ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Spinner size="sm" />
+                  <Text fontSize="xs" color="var(--text-3)">
+                    Loading reports...
                   </Text>
-
-              </Box>
-            ) : (
-              <Text fontSize="sm" color="gray.500">No reports available for this GSTIN yet.</Text>
-            )}
-          </>
-        ) : (
-          <Text fontSize="sm" color="gray.500">
-            Enter a GSTIN to start generating reports.
-          </Text>
-        )}
-      </VStack>
-
-      {/* Fullscreen Modal with Tabbed Sheets */}
-      <Modal isOpen={isOpen} onClose={onClose} size="full">
-        <ModalOverlay />
-        <ModalContent maxW="100vw" maxH="100vh">
-          <ModalHeader>{modalTitle}</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody p={0}>
-            <Tabs variant="enclosed" isFitted height="full">
-              <TabList overflowX="auto">
-                {Object.keys(workbookData).map((sheetName, i) => (
-                  <Tab key={i}> {sheetName}</Tab>
-                ))}
-              </TabList>
-              <TabPanels>
-                {Object.entries(workbookData).map(([sheetName, data], i) => (
-                  <TabPanel key={i} p={0}>
-                    <Box overflow="auto" h="calc(100vh - 150px)">
-                      <VirtualList
-                        height={window.innerHeight - 150}
-                        itemCount={data.length}
-                        itemSize={40}
-                        width="100%"
-                      >
-                        {renderRow(data)}
-                      </VirtualList>
-                    </Box>
-                  </TabPanel>
-                ))}
-              </TabPanels>
-            </Tabs>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
-    </Box>
+                </div>
+              ) : reportFiles.length > 0 ? (
+                <div className="reports-list-scroll" aria-label="Generated reports list">
+                  <List spacing={2}>
+                    {reportFiles.map((file, idx) => (
+                      <ListItem key={`${file}-${idx}`}>
+                        <div className="report-row">
+                          <span className="fname" title={file}>
+                            {file}
+                          </span>
+                        </div>
+                      </ListItem>
+                    ))}
+                  </List>
+                </div>
+              ) : (
+                <Text fontSize="xs" color="var(--text-3)">
+                  No reports available yet.
+                </Text>
+              )}
+            </>
+          ) : (
+            <Text fontSize="xs" color="var(--text-3)">
+              Enter a GSTIN to start generating reports.
+            </Text>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 
