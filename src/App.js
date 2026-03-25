@@ -7,6 +7,7 @@ import UploadPanel from "./components/UploadPanel";
 import UploadedFiles from "./components/UploadedFiles";
 import GenerateReportsAction from "./components/GenerateReportsAction";
 import Reports from "./components/Reports";
+import Footer from "./components/Footer";
 
 function App() {
   const [gstn, setGstn] = useState("");
@@ -92,6 +93,7 @@ return (
         </div>
       </div>
     </div>
+    <Footer />
   </>
 );
 }
