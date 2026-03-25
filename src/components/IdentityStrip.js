@@ -27,7 +27,7 @@ const IdentityStrip = ({ gstn, setGstn, returnType, setReturnType }) => {
           className="gstin-input"
           id="gstinInput"
           type="text"
-          placeholder="22ABCDE1234F1Z5"
+          placeholder="Enter GSTIN"
           maxLength={15}
           value={gstn}
           onChange={(e) => setGstn(e.target.value.toUpperCase())}

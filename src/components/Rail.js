@@ -11,7 +11,7 @@ const Rail = ({ activeTab, onTabChange, isDark, onToggleTheme }) => {
           role="tab"
           aria-selected={activeTab === "intake"}
           aria-controls="panel-intake"
-          title="Intake"
+          title="Upload"
         >
           <div className="tab-icon" aria-hidden="true">
             <svg viewBox="0 0 16 16">

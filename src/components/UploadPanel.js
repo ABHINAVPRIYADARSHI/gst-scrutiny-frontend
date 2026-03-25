@@ -162,8 +162,8 @@ const UploadPanel = ({
     <div className="upload-panel">
       <div className="card upload-panel-card">
         <div className="card-head">
-          <span className="card-title">Upload files</span>
-          <span className="card-sub">{getAcceptedFileTypes(returnType)}</span>
+          <span className="card-title">Upload Panel</span>
+          <span className="card-sub">{getAcceptedFileTypes(returnType)} format</span>
         </div>
         <div className="card-body upload-panel-body">
           <div
@@ -187,7 +187,7 @@ const UploadPanel = ({
               </svg>
             </span>
             <p>Drag &amp; drop files here</p>
-            <small>or click to browse — {getAcceptedFileTypes(returnType)}</small>
+            <small>or click to browse — {getAcceptedFileTypes(returnType)} format</small>
 
             <Input
               id="file-upload"
@@ -238,53 +238,58 @@ const UploadPanel = ({
         </div>
       </div>
 
-      <div className="action-btns-wrap upload-panel-actions">
-        {(() => {
-          const hasValidGstin = isValidGSTIN(gstn);
-          const uploadDisabled = !hasValidGstin || files.length === 0;
-          const title = !gstn.trim()
-            ? "Enter GSTIN to enable upload."
-            : !hasValidGstin
-              ? "Enter a valid GSTIN (15 chars) to enable upload."
-              : files.length === 0
-                ? "Select files first."
-                : "Upload files";
+      {(() => {
+        const hasValidGstin = isValidGSTIN(gstn);
+        const uploadDisabled = !hasValidGstin || files.length === 0;
+        const title = !gstn.trim()
+          ? "Enter GSTIN to enable upload."
+          : !hasValidGstin
+            ? "Enter a valid GSTIN (15 chars) to enable upload."
+            : files.length === 0
+              ? "Select files first."
+              : "Upload files";
 
-          const hint = !gstn.trim()
-            ? "Enter GSTIN to enable upload."
-            : !hasValidGstin
-              ? "GSTIN format is invalid. Use 15 chars like 22ABCDE1234F1Z5."
-              : files.length === 0
-                ? `No valid ${getAcceptedFileTypes(returnType)} files selected for ${returnType}.`
-                : "";
-          const isGstinHint = !gstn.trim() || !hasValidGstin;
+        const hint = !gstn.trim()
+          ? "Enter GSTIN to enable upload."
+          : !hasValidGstin
+            ? "GSTIN format is invalid. Use 15 chars like 22ABCDE1234F1Z5."
+            : files.length === 0
+              ? `No valid ${getAcceptedFileTypes(returnType)} files selected for ${returnType}.`
+              : "";
+        const isGstinHint = !gstn.trim() || !hasValidGstin;
 
-          return (
-            <>
-              {hint ? (
-                <div
+        return (
+          <div className="card upload-action-card">
+            {hint ? (
+              <div className="tog-row upload-action-head">
+                <span
                   className={`upload-hint${isGstinHint ? " upload-hint-danger" : ""}`}
                   role="status"
                   aria-live="polite"
                 >
                   {hint}
-                </div>
-              ) : null}
-              <div className="action-btns">
-                <button
-                  className={uploadDisabled ? "btn-outline" : "btn-primary"}
-                  type="button"
-                  onClick={handleUpload}
-                  disabled={uploadDisabled}
-                  title={title}
-                >
-                  Upload files
-                </button>
+                </span>
               </div>
-            </>
-          );
-        })()}
-      </div>
+            ) : null}
+
+            <div className="card-body">
+              <div className="action-btns-wrap upload-panel-actions">
+                <div className="action-btns">
+                  <button
+                    className={uploadDisabled ? "btn-outline" : "btn-primary"}
+                    type="button"
+                    onClick={handleUpload}
+                    disabled={uploadDisabled}
+                    title={title}
+                  >
+                    Upload files
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };
