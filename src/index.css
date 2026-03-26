@@ -165,12 +165,25 @@ samp {
 }
 
 .app-footer-shell {
+  --footer-bg: rgba(255, 255, 255, 0.88);
+  --footer-border: rgba(0, 0, 0, 0.12);
+  --footer-text: #4f4d53;
+  --footer-muted: #86828b;
+  --footer-shadow: 0 -10px 28px rgba(17, 24, 39, 0.08);
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 20;
   pointer-events: none;
+}
+
+.app-footer-shell.dark {
+  --footer-bg: rgba(11, 17, 34, 0.9);
+  --footer-border: rgba(0, 212, 180, 0.18);
+  --footer-text: #a9c2df;
+  --footer-muted: #6f8db2;
+  --footer-shadow: 0 -14px 30px rgba(0, 0, 0, 0.32);
 }
 
 .app-footer-trigger {
@@ -191,21 +204,36 @@ samp {
   z-index: 20;
   min-height: 42px;
   padding: 10px 16px;
-  border-top: 0.5px solid var(--border-md);
-  background: var(--bg-surface);
-  color: var(--text-2);
+  border-top: 1px solid var(--footer-border);
+  background: var(--footer-bg);
+  color: var(--footer-text);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   flex-wrap: wrap;
-  font-size: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
   text-align: center;
-  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--footer-shadow);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   transform: translateY(calc(100% - 4px));
   opacity: 0;
   pointer-events: auto;
   transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.app-footer-copy {
+  color: var(--accent);
+  font-weight: 500;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.app-footer-shell.dark .app-footer-copy {
+  color: #67e8d5;
+  text-shadow: none;
 }
 
 .app-footer-shell:hover .app-footer,
@@ -217,7 +245,12 @@ samp {
 .app-footer-version {
   font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
-  color: var(--text-3);
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
 }
 
 .brand {

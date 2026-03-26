@@ -92,8 +92,8 @@ return (
           </main>
         </div>
       </div>
+      <Footer isDark={isDark} />
     </div>
-    <Footer />
   </>
 );
 }
