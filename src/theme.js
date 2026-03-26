@@ -45,18 +45,18 @@ export const theme = extendTheme({
       variants: {
         solid: {
           bg: semantic.accent,
-          color: "#061018",
+          color: "#ffffff",
           _hover: { filter: "brightness(0.96)" },
           _active: { transform: "translateY(0.5px)" },
         },
         ghost: {
           color: semantic.ink,
-          _hover: { bg: "rgba(232, 238, 252, 0.06)" },
+          _hover: { bg: "var(--accent-bg)" },
         },
         outline: {
           borderColor: semantic.line,
           color: semantic.ink,
-          _hover: { bg: "rgba(232, 238, 252, 0.06)" },
+          _hover: { bg: "var(--accent-bg)" },
         },
       },
     },
@@ -64,9 +64,9 @@ export const theme = extendTheme({
       variants: {
         outline: {
           field: {
-            bg: "rgba(15, 26, 46, 0.72)",
+            bg: "var(--gst-paper)",
             borderColor: semantic.line,
-            _hover: { borderColor: "rgba(232, 238, 252, 0.22)" },
+            _hover: { borderColor: "var(--accent-border)" },
             _focusVisible: { borderColor: semantic.accent },
             _placeholder: { color: semantic.muted },
           },
@@ -89,8 +89,9 @@ export const theme = extendTheme({
           tab: {
             borderColor: semantic.line,
             _selected: {
-              bg: "rgba(232, 238, 252, 0.08)",
-              borderColor: semantic.line,
+              bg: "var(--accent-bg)",
+              borderColor: "var(--accent-border)",
+              color: "var(--accent-text)",
             },
           },
           tablist: {
