@@ -111,7 +111,7 @@ const Reports = ({ gstn, status }) => {
           <div className="reports-head-actions">
             {gstn.trim() && !openingReports ? (
               <span className="reports-path-hint">
-                The reports are available at /GST Mitra/{gstn}/reports/
+                The reports are available at /GST Mitra/reports/{gstn}/
               </span>
             ) : null}
             <button
