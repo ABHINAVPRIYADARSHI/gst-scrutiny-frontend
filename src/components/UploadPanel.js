@@ -216,6 +216,7 @@ const UploadPanel = ({
                         icon={<DeleteIcon />}
                         size="sm"
                         variant="ghost"
+                        className="file-del-btn"
                         aria-label={`Remove ${file.name}`}
                         onClick={() => {
                           const updated = files.filter((_, i) => i !== idx);

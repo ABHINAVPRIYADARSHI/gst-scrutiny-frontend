@@ -82,6 +82,7 @@ const UploadedFiles = ({ gstn, returnType, uploadedFiles, setUploadedFiles }) =>
                     icon={<DeleteIcon />}
                     size="sm"
                     variant="ghost"
+                    className="file-del-btn"
                     onClick={() => handleDelete(fileName)}
                     aria-label={`Delete ${fileName}`}
                   />

@@ -108,15 +108,22 @@ const Reports = ({ gstn, status }) => {
             <span className="card-title">Generated reports</span>
             <span className="card-sub">{gstn ? `GSTIN: ${gstn}` : "GSTIN: -"}</span>
           </div>
-          <button
-            className="btn-primary reports-open-btn"
-            type="button"
-            onClick={handleOpenReports}
-            disabled={openingReports || !gstn.trim()}
-            title={gstn.trim() ? "Open reports folder for this GSTIN" : "Enter GSTIN first"}
-          >
-            {openingReports ? "Opening..." : "Open Reports"}
-          </button>
+          <div className="reports-head-actions">
+            {gstn.trim() && !openingReports ? (
+              <span className="reports-path-hint">
+                The reports are available at /GST Mitra/{gstn}/reports/
+              </span>
+            ) : null}
+            <button
+              className="btn-primary reports-open-btn"
+              type="button"
+              onClick={handleOpenReports}
+              disabled={openingReports || !gstn.trim()}
+              title={gstn.trim() ? "Open reports folder for this GSTIN" : "Enter GSTIN first"}
+            >
+              {openingReports ? "Opening..." : "Open Reports"}
+            </button>
+          </div>
         </div>
         <div className="card-body">
           {gstn ? (
