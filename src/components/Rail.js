@@ -60,12 +60,12 @@ const Rail = ({ activeTab, onTabChange, isDark, onToggleTheme }) => {
         <button type="button" className="icon-btn" title="Toggle dark / light mode" onClick={onToggleTheme}>
           <svg viewBox="0 0 16 16" aria-hidden="true">
             {isDark ? (
-              <path d="M13 7A6 6 0 0 1 7 13 6 6 0 0 1 1 7a6 6 0 0 0 6 6 6 6 0 0 0 6-6z" />
-            ) : (
               <>
                 <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.5 3.5l1.4 1.4M11.1 11.1l1.4 1.4M3.5 12.5l1.4-1.4M11.1 4.9l1.4-1.4" />
                 <circle cx="8" cy="8" r="3" />
               </>
+            ) : (
+              <path d="M11 1.73a5.5 5.5 0 0 0 5.27 7.27 5.5 5.5 0 1 1-5.27-7.27z" />
             )}
           </svg>
           <span className="sr-only">Toggle theme</span>
