@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import {
   Button,
+  Spinner,
   useToast,
   useDisclosure,
   AlertDialog,
@@ -104,15 +105,27 @@ const GenerateReportsAction = ({
           <div className="action-btns-wrap reports-generate-wrap">
             <div className="action-btns">
               <button
-                className="btn-primary"
+                className={`btn-primary ${checkingOpenFiles ? "btn-primary-loading" : ""}`}
                 type="button"
                 onClick={handleGenerateReport}
                 disabled={!isValidGSTIN(gstn) || checkingOpenFiles}
                 title={gstn.trim() ? "Generate reports for this GSTIN" : "Enter GSTIN first"}
               >
-                {checkingOpenFiles ? "Checking..." : "Generate Reports"}
+                {checkingOpenFiles ? (
+                  <span className="btn-loading-content">
+                    <Spinner size="sm" thickness="3px" speed="0.65s" emptyColor="rgba(255,255,255,0.28)" color="currentColor" />
+                    <span>Scrutiny in progress ...</span>
+                  </span>
+                ) : (
+                  "Generate Reports"
+                )}
               </button>
             </div>
+            {checkingOpenFiles ? (
+              <div className="reports-loading-note" role="status" aria-live="polite">
+                Preparing and generating reports. This can take a moment.
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

@@ -947,6 +947,25 @@ samp {
 .dark .btn-primary:disabled {
   color: var(--disabled-text);
 }
+.btn-primary-loading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-loading-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.reports-loading-note {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-3);
+  text-align: center;
+}
 
 .stat-solo {
   background: var(--bg-surface);
