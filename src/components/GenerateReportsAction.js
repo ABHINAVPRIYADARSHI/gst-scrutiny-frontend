@@ -113,7 +113,7 @@ const GenerateReportsAction = ({
               >
                 {checkingOpenFiles ? (
                   <span className="btn-loading-content">
-                    <Spinner size="sm" thickness="3px" speed="0.65s" emptyColor="rgba(255,255,255,0.28)" color="currentColor" />
+                    <Spinner size="sm" thickness="3px" speed="0.65s" emptyColor="rgba(242,244,244,0.28)" color="currentColor" />
                     <span>Scrutiny in progress ...</span>
                   </span>
                 ) : (
@@ -147,7 +147,7 @@ const GenerateReportsAction = ({
                 Cancel
               </Button>
               <Button
-                colorScheme="purple"
+                variant="solid"
                 onClick={async () => {
                   onClose();
                   await runReportGeneration();

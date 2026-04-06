@@ -1,6 +1,6 @@
 // components/Reports.js
 import React, { useCallback, useEffect, useState } from "react";
-import { Text, Spinner, Button, List, ListItem, useToast } from "@chakra-ui/react";
+import { Text, Spinner, List, ListItem, useToast } from "@chakra-ui/react";
 import { CheckCircleIcon, WarningIcon, InfoIcon } from "@chakra-ui/icons";
 
 const Reports = ({ gstn, status }) => {
@@ -11,13 +11,13 @@ const Reports = ({ gstn, status }) => {
   const [error, setError] = useState("");
 
   const getStatusIcon = () => {
-    if (!status) return <InfoIcon color="gray.400" />;
-    if (status.includes("success")) return <CheckCircleIcon color="green.400" />;
-    if (status.includes("error") || status.includes("fail")) return <WarningIcon color="red.400" />;
+    if (!status) return <InfoIcon color="var(--text-3)" />;
+    if (status.includes("success")) return <CheckCircleIcon color="var(--accent)" />;
+    if (status.includes("error") || status.includes("fail")) return <WarningIcon color="var(--danger-text)" />;
     if (status.includes("Generating") || status.includes("Uploading")) {
-      return <Spinner color="blue.400" size="sm" />;
+      return <Spinner color="var(--accent)" size="sm" />;
     }
-    return <InfoIcon color="gray.500" />;
+    return <InfoIcon color="var(--text-3)" />;
   };
 
   const fetchReports = useCallback(async () => {
@@ -144,9 +144,9 @@ const Reports = ({ gstn, status }) => {
                     <Text fontSize="xs" color="var(--text-3)">
                       {error}
                     </Text>
-                    <Button mt={2} size="sm" variant="outline" onClick={fetchReports}>
-                      Try again
-                    </Button>
+                    <button className="btn-outline reports-retry-btn" type="button" onClick={fetchReports}>
+                      Try Again
+                    </button>
                   </div>
                 </div>
               ) : loading && reportFiles.length === 0 ? (
