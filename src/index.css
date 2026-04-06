@@ -615,12 +615,30 @@ samp {
   background: #1c2940;
   border-color: rgba(125, 211, 252, 0.2);
   box-shadow: 0 1px 2px rgba(8, 17, 29, 0.22);
+  color: var(--text-1);
+  -webkit-text-fill-color: var(--text-1);
+  caret-color: var(--text-1);
+}
+
+.dark .gstin-input:hover {
+  background: #20314b;
+  border-color: rgba(125, 211, 252, 0.24);
 }
 
 .dark .gstin-input:focus {
   background: #22344e;
   border-color: #7dd3fc;
   box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.18);
+}
+
+.dark .gstin-input:-webkit-autofill,
+.dark .gstin-input:-webkit-autofill:hover,
+.dark .gstin-input:-webkit-autofill:focus,
+.dark .gstin-input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--text-1);
+  -webkit-box-shadow: 0 0 0 1000px #1c2940 inset;
+  box-shadow: 0 0 0 1000px #1c2940 inset;
+  caret-color: var(--text-1);
 }
 
 .dark .rpill {
