@@ -58,7 +58,7 @@ const UploadedFiles = ({ gstn, returnType, uploadedFiles, setUploadedFiles }) =>
   };
 
   return (
-    <div className="card">
+    <div className="card uploaded-files-card">
       <div className="card-head">
         <span className="card-title">Uploaded files</span>
         <span className="card-sub">

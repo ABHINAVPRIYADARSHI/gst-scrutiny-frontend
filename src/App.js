@@ -16,7 +16,7 @@ function App() {
   const [status, setStatus] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [activeTab, setActiveTab] = useState("intake");
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(true);
   const [includeOptionalReport, setIncludeOptionalReport] = useState(true);
 
 return (
@@ -57,10 +57,10 @@ return (
                 </div>
 
                 <div className="intake-right">
-                  <div className="stat-solo" aria-label="Uploaded file count">
-                    <div className="stat-lbl">Files uploaded</div>
-                    <div className="stat-val">{uploadedFiles.length}</div>
-                    <div className="stat-sub">for {returnType}</div>
+                  <div className="stat-solo stat-solo-inline" aria-label="Uploaded file count">
+                    <span className="stat-lbl">Files uploaded:</span>
+                    <span className="stat-val stat-val-sm">{uploadedFiles.length}</span>
+                    <span className="stat-sub">for {returnType}</span>
                   </div>
 
                   <UploadedFiles
